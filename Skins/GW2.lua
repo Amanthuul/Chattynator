@@ -370,6 +370,17 @@ local skinners = {
       button.HoverIcon:SetPoint("CENTER")
     end
   end,
+  ScrollToEndFrame = function(frame)
+    frame.gradient:SetGradient("VERTICAL", CreateColor(intensity.r, intensity.g, intensity.b, 0.3), CreateColor(0, 0, 0, 0))
+    frame:SetScript("OnEnter", function()
+      frame.gradient:SetGradient("VERTICAL", CreateColor(hoverColor.r, hoverColor.g, hoverColor.b, 0.3), CreateColor(0, 0, 0, 0))
+         frame.line:SetColorTexture(hoverColor.r, hoverColor.g, hoverColor.b)
+    end)
+    frame:SetScript("OnLeave", function()
+      frame.gradient:SetGradient("VERTICAL", CreateColor(intensity.r, intensity.g, intensity.b, 0.3), CreateColor(0, 0, 0, 0))
+         frame.line:SetColorTexture(intensity.r, intensity.g, intensity.b)
+    end)
+  end,
   TabButton = function(frame)
     if GW.HandleTabs then
       GW.HandleTabs(frame, false)

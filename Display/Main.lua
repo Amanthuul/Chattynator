@@ -91,12 +91,15 @@ function addonTable.Display.ChatFrameMixin:OnLoad()
       self:ApplyButtonPositionAnchors()
       self:ApplyTabsShowing()
       self.ScrollingMessages:Render()
+      self.ButtonsBar:UpdateScrollToEndFrame()
     elseif settingName == addonTable.Config.Options.SHOW_BUTTONS_ON_HOVER then
       self.ButtonsBar:Update()
     elseif settingName == addonTable.Config.Options.EDIT_BOX_POSITION and self:GetID() == 1 then
       self:PositionEditBox()
     elseif settingName == addonTable.Config.Options.SHOW_TABS then
       self:ApplyTabsShowing()
+      self.ButtonsBar:Update()
+    elseif settingName == addonTable.Config.Options.SHOW_SCROLL_TO_END_FRAME then
       self.ButtonsBar:Update()
     end
   end)

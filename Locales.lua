@@ -65,6 +65,7 @@ L["LEFT_INSIDE"] = "Left inside"
 L["TABS_BELOW"] = "Below tabs"
 L["TABS_ABOVE"] = "Above tabs"
 L["SHOW_BUTTONS_ON_HOVER"] = "Show buttons on hover"
+L["SHOW_SCROLL_TO_END_FRAME"] = "Scroll down by clicking at bottom of chat"
 L["NEW_WHISPERS_TO_NEW_TAB"] = "New whispers to new tab"
 
 L["MESSAGE_SPACING"] = "Message spacing"
