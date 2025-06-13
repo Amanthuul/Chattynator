@@ -492,6 +492,7 @@ function addonTable.MessagesMonitorMixin:RegisterWidth(width)
   if self.widths[width] == 1 then
     local key = width
     for index, height in pairs(self.heights) do
+      self.sizingFontString:SetText("")
       self.sizingFontString:SetSpacing(0)
       self.sizingFontString:SetText(self.messagesProcessed[index].text)
       self.sizingFontString:SetWidth(width + 0.1)
@@ -550,6 +551,7 @@ function addonTable.MessagesMonitorMixin:GetMessageHeight(reverseIndex)
   if not self.heights[index] and self.messagesProcessed[index] then
     local height = {}
     self.heights[index] = height
+    self.sizingFontString:SetText("")
     self.sizingFontString:SetSpacing(0)
     self.sizingFontString:SetText(self.messagesProcessed[index].text)
     for width in pairs(self.widths) do
@@ -634,9 +636,11 @@ function addonTable.MessagesMonitorMixin:UpdateChannels()
     for i = 1, #channelDetails, 3 do
       local name = channelDetails[i + 1]
       local _, fullName = GetChannelName(name)
-      local zoneID = C_ChatInfo.GetChannelInfoFromIdentifier(fullName).zoneChannelID
-      table.insert(self.channelList, fullName)
-      table.insert(self.zoneChannelList, zoneID)
+      if fullName then
+        local zoneID = C_ChatInfo.GetChannelInfoFromIdentifier(fullName).zoneChannelID
+        table.insert(self.channelList, fullName)
+        table.insert(self.zoneChannelList, zoneID)
+      end
     end
   end
 
