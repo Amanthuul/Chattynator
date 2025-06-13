@@ -23,6 +23,8 @@ function addonTable.Display.ButtonsBarMixin:OnLoad()
 
   self.hookedButtons = false
   self.active = false
+
+  self.fadeInterpolator = CreateInterpolator(InterpolatorUtil.InterpolateEaseIn)
 end
 
 function addonTable.Display.ButtonsBarMixin:AddBlizzardButtons()
@@ -177,6 +179,11 @@ function addonTable.Display.ButtonsBarMixin:OnEnter()
     self.hideTimer:Cancel()
   end
   self.active = true
+  self.fadeInterpolator:Interpolate(self.buttons[1]:GetAlpha(), 1, 0.15, function(value)
+    for _, b in ipairs(self.buttons) do
+      b:SetAlpha(value)
+    end
+  end)
 end
 
 function addonTable.Display.ButtonsBarMixin:OnLeave()
@@ -187,9 +194,15 @@ function addonTable.Display.ButtonsBarMixin:OnLeave()
     self.hideTimer:Cancel()
   end
   self.hideTimer = C_Timer.NewTimer(2, function()
-    for _, b in ipairs(self.buttons) do
-      b:Hide()
-    end
+    self.fadeInterpolator:Interpolate(self.buttons[1]:GetAlpha(), 0, 0.15, function(value)
+      for _, b in ipairs(self.buttons) do
+        b:SetAlpha(value)
+      end
+    end, function()
+      for _, b in ipairs(self.buttons) do
+        b:Hide()
+      end
+    end)
     self.active = false
   end)
 end
@@ -220,6 +233,7 @@ function addonTable.Display.ButtonsBarMixin:Update()
           end
         end)
         b:Hide()
+        b:SetAlpha(0)
       end
       self.active = false
     end
@@ -235,6 +249,9 @@ function addonTable.Display.ButtonsBarMixin:Update()
       self.hideTimer:Cancel()
       self.hideTimer = nil
     end
+    for _, b in ipairs(self.buttons) do
+      b:SetAlpha(1)
+    end
   end
 
   if position:match("left") then
@@ -249,6 +266,7 @@ function addonTable.Display.ButtonsBarMixin:Update()
     else
       self.ScrollToBottomButton:SetPoint("BOTTOMRIGHT", self:GetParent().ScrollingMessages, "BOTTOMLEFT", -5, 5)
     end
+    local startingOffsetY = offsetY
     self:ClearAllPoints()
     self:SetPoint("TOPRIGHT", self:GetParent().ScrollingMessages, "TOPLEFT", offsetX, offsetY)
     for _, b in ipairs(self.buttons) do
@@ -261,7 +279,7 @@ function addonTable.Display.ButtonsBarMixin:Update()
       offsetY = offsetY - b:GetHeight() - 5
     end
 
-    local heightAvailable = self:GetParent().ScrollingMessages:GetHeight() - 8 - self.ScrollToBottomButton:GetHeight() - 2 + 20
+    local heightAvailable = self:GetParent().ScrollingMessages:GetHeight() - 2 - self.ScrollToBottomButton:GetHeight() + startingOffsetY
     local currentHeight = 0
     for _, b in ipairs(self.buttons) do
       currentHeight = currentHeight + b:GetHeight() + 5
