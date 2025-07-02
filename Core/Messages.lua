@@ -336,10 +336,15 @@ function addonTable.MessagesMonitorMixin:SetInset()
     self.sizingFontString:SetText("00:00 mm")
   elseif self.timestampFormat == "%I:%M:%S %p" then
     self.sizingFontString:SetText("00:00:00 mm")
+  elseif self.timestampFormat == " " then
+    self.sizingFontString:SetText(" ")
   else
     error("unknown format")
   end
   self.inset = self.sizingFontString:GetUnboundedStringWidth() + 10
+  if self.timestampFormat == " " then
+    self.inset = 8
+  end
 end
 
 function addonTable.MessagesMonitorMixin:ShowGMOTD()
@@ -392,6 +397,8 @@ function addonTable.MessagesMonitorMixin:OnEvent(eventName, ...)
     self:SetInset()
     self.heights = {}
     addonTable.CallbackRegistry:TriggerEvent("MessageDisplayChanged")
+  elseif eventName == "PLAYER_REPORT_SUBMITTED" then
+    --TODO
   elseif eventName == "PLAYER_LOGIN" then
     self.playerLoginFired = true
     local oldFontKey = self.fontKey
