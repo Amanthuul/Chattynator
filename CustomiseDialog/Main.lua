@@ -3,18 +3,6 @@ local addonTable = select(2, ...)
 
 local customisers = {}
 
-local reloadDialog = "Chattynator_ReloadDialog"
-StaticPopupDialogs[reloadDialog] = {
-  text = addonTable.Locales.RELOAD_REQUIRED,
-  button1 = YES,
-  button2 = NO,
-  OnAccept = function()
-    ReloadUI()
-  end,
-  timeout = 0,
-  hideOnEscape = 1,
-}
-
 local function SetupGeneral(parent)
   local container = CreateFrame("Frame", nil, parent)
 
@@ -41,29 +29,12 @@ local function SetupGeneral(parent)
     credit:SetText(addonTable.Locales.BY_PLUSMOUSE)
     credit:SetPoint("BOTTOMLEFT", name, "BOTTOMRIGHT", 5, 0)
 
-    local discordLinkDialog = "Chattynator_General_Settings_Discord_Dialog"
-    StaticPopupDialogs[discordLinkDialog] = {
-      text = addonTable.Locales.CTRL_C_TO_COPY,
-      button1 = DONE,
-      hasEditBox = 1,
-      OnShow = function(self)
-        self.editBox:SetText("https://discord.gg/3MpPfcP5c5")
-        self.editBox:HighlightText()
-      end,
-      EditBoxOnEnterPressed = function(self)
-        self:GetParent():Hide()
-      end,
-      EditBoxOnEscapePressed = StaticPopup_StandardEditBoxOnEscapePressed,
-      editBoxWidth = 230,
-      timeout = 0,
-      hideOnEscape = 1,
-    }
     local discordButton = CreateFrame("Button", nil, infoInset, "UIPanelDynamicResizeButtonTemplate")
     discordButton:SetText(addonTable.Locales.JOIN_THE_DISCORD)
     DynamicResizeButton_Resize(discordButton)
     discordButton:SetPoint("BOTTOMLEFT", logo, "BOTTOMRIGHT", 8, 0)
     discordButton:SetScript("OnClick", function()
-      StaticPopup_Show(discordLinkDialog)
+      addonTable.Dialogs.ShowCopy("https://discord.gg/3MpPfcP5c5")
     end)
     addonTable.Skins.AddFrame("Button", discordButton)
     local discordText = infoInset:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
@@ -86,30 +57,12 @@ local function SetupGeneral(parent)
     text:SetText(addonTable.Locales.DONATE)
     text:SetJustifyH("RIGHT")
 
-    local donateLinkDialog = "Chattynator_General_Settings_Donate_Dialog"
-    StaticPopupDialogs[donateLinkDialog] = {
-      text = addonTable.Locales.CTRL_C_TO_COPY,
-      button1 = DONE,
-      hasEditBox = 1,
-      OnShow = function(self)
-        self.editBox:SetText("https://linktr.ee/plusmouse")
-        self.editBox:HighlightText()
-      end,
-      EditBoxOnEnterPressed = function(self)
-        self:GetParent():Hide()
-      end,
-      EditBoxOnEscapePressed = StaticPopup_StandardEditBoxOnEscapePressed,
-      editBoxWidth = 230,
-      timeout = 0,
-      hideOnEscape = 1,
-    }
-
     local button = CreateFrame("Button", nil, donateFrame, "UIPanelDynamicResizeButtonTemplate")
     button:SetText(addonTable.Locales.LINK)
     DynamicResizeButton_Resize(button)
     button:SetPoint("LEFT", donateFrame, "CENTER", -35, 0)
     button:SetScript("OnClick", function()
-      StaticPopup_Show(donateLinkDialog)
+      addonTable.Dialogs.ShowCopy("https://linktr.ee/plusmouse")
     end)
     addonTable.Skins.AddFrame("Button", button)
     table.insert(allFrames, donateFrame)
@@ -126,37 +79,10 @@ local function SetupGeneral(parent)
         addonTable.Config.MakeProfile(profileName, clone)
         profileDropdown.DropDown:GenerateMenu()
         if addonTable.Config.Get(addonTable.Config.Options.CURRENT_SKIN) ~= oldSkin then
-          StaticPopup_Show(reloadDialog)
+          addonTable.Dialogs.ShowConfirm(addonTable.Locales.RELOAD_REQUIRED, YES, NO, function() ReloadUI() end)
         end
       end
     end
-    local makeProfileDialog = "Chattynator_MakeProfileDialog"
-    StaticPopupDialogs[makeProfileDialog] = {
-      text = addonTable.Locales.ENTER_PROFILE_NAME,
-      button1 = ACCEPT,
-      button2 = CANCEL,
-      hasEditBox = 1,
-      OnAccept = function(self)
-        ValidateAndCreate(self.editBox:GetText())
-      end,
-      EditBoxOnEnterPressed = function(self)
-        ValidateAndCreate(self:GetText())
-        self:GetParent():Hide()
-      end,
-      EditBoxOnEscapePressed = StaticPopup_StandardEditBoxOnEscapePressed,
-      timeout = 0,
-      hideOnEscape = 1,
-    }
-    local deleteProfileDialog = "Chattynator_DeleteProfileDialog"
-    StaticPopupDialogs[deleteProfileDialog] = {
-      button1 = YES,
-      button2 = NO,
-      OnAccept = function(_, data)
-        addonTable.Config.DeleteProfile(data)
-      end,
-      timeout = 0,
-      hideOnEscape = 1,
-    }
     profileDropdown:SetPoint("TOP", allFrames[#allFrames], "BOTTOM", 0, -30)
     profileDropdown.DropDown:SetupMenu(function(menu, rootDescription)
       local profiles = addonTable.Config.GetProfileNames()
@@ -168,7 +94,7 @@ local function SetupGeneral(parent)
           local oldSkin = addonTable.Config.Get(addonTable.Config.Options.CURRENT_SKIN)
           addonTable.Config.ChangeProfile(name)
           if addonTable.Config.Get(addonTable.Config.Options.CURRENT_SKIN) ~= oldSkin then
-            StaticPopup_Show(reloadDialog)
+            addonTable.Dialogs.ShowConfirm(addonTable.Locales.RELOAD_REQUIRED, YES, NO, function() ReloadUI() end)
           end
         end)
         if name ~= "DEFAULT" and name ~= CHATTYNATOR_CURRENT_PROFILE then
@@ -179,8 +105,9 @@ local function SetupGeneral(parent)
             delete.Texture:SetAtlas("transmog-icon-remove")
             delete:SetScript("OnClick", function()
               menu:Close()
-              StaticPopupDialogs[deleteProfileDialog].text = addonTable.Locales.CONFIRM_DELETE_PROFILE_X:format(name)
-              StaticPopup_Show(deleteProfileDialog, nil, nil, name)
+              addonTable.Dialogs.ShowConfirm(addonTable.Locales.CONFIRM_DELETE_PROFILE_X:format(name), YES, NO, function()
+                addonTable.Config.DeleteProfile(name)
+              end)
             end)
             MenuUtil.HookTooltipScripts(delete, function(tooltip)
               GameTooltip_SetTitle(tooltip, DELETE);
@@ -190,11 +117,11 @@ local function SetupGeneral(parent)
       end
       rootDescription:CreateButton(NORMAL_FONT_COLOR:WrapTextInColorCode(addonTable.Locales.NEW_PROFILE_CLONE), function()
         clone = true
-        StaticPopup_Show(makeProfileDialog)
+        addonTable.Dialogs.ShowEditBox(addonTable.Locales.ENTER_PROFILE_NAME, ACCEPT, CANCEL, ValidateAndCreate)
       end)
       rootDescription:CreateButton(NORMAL_FONT_COLOR:WrapTextInColorCode(addonTable.Locales.NEW_PROFILE_BLANK), function()
         clone = false
-        StaticPopup_Show(makeProfileDialog)
+        addonTable.Dialogs.ShowEditBox(addonTable.Locales.ENTER_PROFILE_NAME, ACCEPT, CANCEL, ValidateAndCreate)
       end)
     end)
   end
@@ -483,7 +410,7 @@ local function SetupThemes(parent)
     return addonTable.Config.Get(addonTable.Config.Options.CURRENT_SKIN) == value
   end, function(value)
     addonTable.Config.Set(addonTable.Config.Options.CURRENT_SKIN, value)
-    StaticPopup_Show(reloadDialog)
+    addonTable.Dialogs.ShowConfirm(addonTable.Locales.RELOAD_REQUIRED, YES, NO, function() ReloadUI() end)
   end)
   themeDropdown:SetPoint("TOP")
   do
@@ -541,11 +468,96 @@ local function SetupThemes(parent)
   return container
 end
 
+local function SetupChatColors(parent)
+  local container = CreateFrame("Frame", nil, parent)
+
+  local allFrames = {}
+
+  for _, entry in ipairs(addonTable.CustomiseDialog.TYPE_LAYOUT_ORDER) do
+    local dropdown = addonTable.CustomiseDialog.Components.GetBasicDropdown(container, entry[1])
+    if #allFrames > 0 then
+      dropdown:SetPoint("TOP", allFrames[#allFrames], "BOTTOM")
+    else
+      dropdown:SetPoint("TOP")
+    end
+    dropdown.DropDown:SetDefaultText(addonTable.Locales.SELECT_TYPE_TO_CHANGE)
+    table.insert(allFrames, dropdown)
+    local fields = addonTable.CustomiseDialog.TYPE_LAYOUT[entry[2]]
+    if not fields then
+      dropdown.DropDown:SetupMenu(function(_, rootDescription)
+        local colors = addonTable.Config.Get(addonTable.Config.Options.CHAT_COLORS)
+        local channelMap, count = addonTable.Messages:GetChannels()
+        for i = 1, count do
+          if channelMap[i] then
+            local color = colors["CHANNEL_" .. channelMap[i]]
+            local oldColor = CopyTable(color)
+            local colorInfo = {
+              r = oldColor.r, g = oldColor.g, b = oldColor.b,
+              swatchFunc = function()
+                color.r, color.g, color.b =  ColorPickerFrame:GetColorRGB()
+                addonTable.CallbackRegistry:TriggerEvent("RefreshStateChange", {[addonTable.Constants.RefreshReason.MessageColor] = true})
+              end,
+              cancelFunc = function()
+                color.r, color.g, color.b =  oldColor.r, oldColor.g, oldColor.b
+                addonTable.CallbackRegistry:TriggerEvent("RefreshStateChange", {[addonTable.Constants.RefreshReason.MessageColor] = true})
+              end,
+            }
+            rootDescription:CreateColorSwatch(addonTable.CustomiseDialog.GetChatColor("CHANNEL_" .. channelMap[i]):WrapTextInColorCode(channelMap[i]),
+              function()
+                ColorPickerFrame:SetupColorPickerAndShow(colorInfo)
+              end,
+              colorInfo
+            )
+          end
+        end
+      end)
+    else
+      dropdown.DropDown:SetupMenu(function(_, rootDescription)
+        local colors = addonTable.Config.Get(addonTable.Config.Options.CHAT_COLORS)
+        local fields = addonTable.CustomiseDialog.TYPE_LAYOUT[entry[2]]
+        for _, f in ipairs(fields) do
+          if ChatTypeGroup[f[1]] then
+            local color = {}
+            for _, a in ipairs(ChatTypeGroup[f[1]]) do
+              table.insert(color, colors[(a:gsub("CHAT_MSG_", ""))])
+            end
+            local oldColor = CopyTable(color[1] or {1, 1, 1})
+            local colorInfo = {
+              r = oldColor.r, g = oldColor.g, b = oldColor.b,
+              swatchFunc = function()
+                for _, c in ipairs(color) do
+                  c.r, c.g, c.b = ColorPickerFrame:GetColorRGB()
+                end
+                addonTable.CallbackRegistry:TriggerEvent("RefreshStateChange", {[addonTable.Constants.RefreshReason.MessageColor] = true})
+              end,
+              cancelFunc = function()
+                for _, c in ipairs(color) do
+                  c.r, c.g, c.b = oldColor.r, oldColor.g, oldColor.b
+                end
+                addonTable.CallbackRegistry:TriggerEvent("RefreshStateChange", {[addonTable.Constants.RefreshReason.MessageColor] = true})
+              end,
+            }
+            rootDescription:CreateColorSwatch(addonTable.CustomiseDialog.GetChatColor(f[1]):WrapTextInColorCode(f[2] or _G[f[1]]),
+              function()
+                ColorPickerFrame:SetupColorPickerAndShow(colorInfo)
+              end,
+              colorInfo
+            )
+          end
+        end
+      end)
+    end
+  end
+
+  return container
+end
+
 local TabSetups = {
   {name = GENERAL, callback = SetupGeneral},
   {name = addonTable.Locales.THEME, callback = SetupThemes},
   {name = addonTable.Locales.LAYOUT, callback = SetupLayout},
   {name = addonTable.Locales.DISPLAY, callback = SetupDisplay},
+  {name = addonTable.Locales.MESSAGE_COLORS, callback = SetupChatColors},
   {name = addonTable.Locales.FORMATTING, callback = SetupFormatting},
 }
 

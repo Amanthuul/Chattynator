@@ -109,9 +109,9 @@ function addonTable.Display.ButtonsBarMixin:AddBlizzardButtons()
 end
 
 local searchMarkup = CreateTextureMarkup("Interface/AddOns/Chattynator/Assets/Search.png", 64, 64, 12, 12, 0, 1, 0, 1)
-local function RunSearch(info, text, isPattern)
-  local window = addonTable.Config.Get(addonTable.Config.Options.WINDOWS)[info.window]
-  local tab = window.tabs[info.tab]
+local function RunSearch(windowIndex, tabIndex, text, isPattern)
+  local window = addonTable.Config.Get(addonTable.Config.Options.WINDOWS)[windowIndex]
+  local tab = window.tabs[tabIndex]
 
   local newTab = CopyTable(tab)
   text = text:lower()
@@ -127,7 +127,7 @@ local function RunSearch(info, text, isPattern)
   newTab.name = searchMarkup
   newTab.isTemporary = true
 
-  local newIndex = info.tab + 1
+  local newIndex = tabIndex + 1
 
   for index, otherTab in ipairs(window.tabs) do
     if otherTab.name == newTab.name and otherTab.isTemporary then
@@ -140,26 +140,9 @@ local function RunSearch(info, text, isPattern)
   end
 
   table.insert(window.tabs, newIndex, newTab)
-  addonTable.allChatFrames[info.window].tabIndex = newIndex
+  addonTable.allChatFrames[windowIndex].tabIndex = newIndex
   addonTable.CallbackRegistry:TriggerEvent("RefreshStateChange", {[addonTable.Constants.RefreshReason.Tabs] = true})
 end
-
-local searchDialog = "Chattynator_SearchDialog"
-StaticPopupDialogs[searchDialog] = {
-  text = "",
-  button1 = SEARCH,
-  button3 = CANCEL,
-  hasEditBox = 1,
-  OnAccept = function(self, data)
-    RunSearch(data, self.editBox:GetText(), IsShiftKeyDown())
-  end,
-  EditBoxOnEnterPressed = function(self, data)
-    RunSearch(data, self:GetText(), IsShiftKeyDown())
-    self:GetParent():Hide()
-  end,
-  EditBoxOnEscapePressed = StaticPopup_StandardEditBoxOnEscapePressed,
-  hideOnEscape = 1,
-}
 
 function addonTable.Display.ButtonsBarMixin:AddButtons()
   if self.madeButtons then
@@ -185,8 +168,9 @@ function addonTable.Display.ButtonsBarMixin:AddButtons()
   self.SearchButton = MakeButton(SEARCH)
   self.SearchButton:SetScript("OnClick", function()
     local tab = addonTable.Config.Get(addonTable.Config.Options.WINDOWS)[self:GetParent():GetID()].tabs[self:GetParent().tabIndex]
-    StaticPopupDialogs[searchDialog].text = addonTable.Locales.SEARCH_IN_X_MESSAGE:format(_G[tab.name] or tab.name)
-    StaticPopup_Show(searchDialog, nil, nil, {window = self:GetParent():GetID(), tab = self:GetParent().tabIndex})
+    addonTable.Dialogs.ShowEditBox(addonTable.Locales.SEARCH_IN_X_MESSAGE:format(addonTable.Display.GetTabNameFromName(tab.name)), SEARCH, CANCEL, function(text)
+      RunSearch(self:GetParent():GetID(), self:GetParent().tabIndex, text, IsShiftKeyDown())
+    end)
   end)
   table.insert(self.buttons, self.SearchButton)
   addonTable.Skins.AddFrame("ChatButton", self.SearchButton, {"search"})

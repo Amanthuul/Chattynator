@@ -20,23 +20,6 @@ local function RenameTab(windowIndex, tabIndex, newName)
   addonTable.CallbackRegistry:TriggerEvent("RefreshStateChange", {[addonTable.Constants.RefreshReason.Tabs] = true})
 end
 
-local renameDialog = "Chattynator_RenameTabDialog"
-StaticPopupDialogs[renameDialog] = {
-  text = "",
-  button1 = ACCEPT,
-  button2 = CANCEL,
-  hasEditBox = 1,
-  OnAccept = function(self, data)
-    RenameTab(data.window, data.tab, self.editBox:GetText())
-  end,
-  EditBoxOnEnterPressed = function(self, data)
-    RenameTab(data.window, data.tab, self:GetText())
-    self:GetParent():Hide()
-  end,
-  EditBoxOnEscapePressed = StaticPopup_StandardEditBoxOnEscapePressed,
-  hideOnEscape = 1,
-}
-
 addonTable.Display.TabsBarMixin = {}
 
 function addonTable.Display.TabsBarMixin:OnLoad()
@@ -151,6 +134,14 @@ function addonTable.Display.TabsBarMixin:GetFilter(tabData, tabTag)
   return func
 end
 
+function addonTable.Display.GetTabNameFromName(name)
+  if type(_G[name]) == "string" then
+    return _G[name]
+  else
+    return name or UNKNOWN
+  end
+end
+
 function addonTable.Display.TabsBarMixin:RefreshTabs()
   local forceSelected = false
   if not self.chatFrame.tabsPool then
@@ -166,7 +157,7 @@ function addonTable.Display.TabsBarMixin:RefreshTabs()
     tabButton.minWidth = false
     tabButton:SetID(index)
     tabButton:Show()
-    tabButton:SetText(_G[tabData.name] or tabData.name or UNKNOWN)
+    tabButton:SetText(addonTable.Display.GetTabNameFromName(tabData.name))
     local tabColor = CreateColorFromRGBHexString(tabData.tabColor)
     local bgColor = CreateColorFromRGBHexString(tabData.backgroundColor)
     local tabTag = self.chatFrame:GetID() .. "_" .. index
@@ -199,8 +190,9 @@ function addonTable.Display.TabsBarMixin:RefreshTabs()
               addonTable.Config.Set(addonTable.Config.Options.LOCKED, true)
             end)
             rootDescription:CreateButton(addonTable.Locales.RENAME_TAB, function()
-              StaticPopupDialogs[renameDialog].text = addonTable.Locales.RENAME_X_MESSAGE:format(_G[tabData.name] or tabData.name)
-              StaticPopup_Show(renameDialog, nil, nil, {window = self.chatFrame:GetID(), tab = tabButton:GetID()})
+              addonTable.Dialogs.ShowEditBox(addonTable.Locales.RENAME_X_MESSAGE:format(addonTable.Display.GetTabNameFromName(tabData.name)), ACCEPT, CANCEL, function(name)
+                RenameTab(self.chatFrame:GetID(), tabButton:GetID(), name)
+              end)
             end)
             do
               local oldColor = tabData.tabColor

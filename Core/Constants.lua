@@ -18,6 +18,7 @@ addonTable.Constants = {
     General = 1,
     Trade = 2,
     LocalDefense = 22,
+    WorldDefense = 23, -- Classic only
     LookingForGroup = 26,
     NewcomerChat = 32,
     Services = 42,
@@ -46,5 +47,6 @@ addonTable.Constants.RefreshReason = {
   MessageFont = 2,
   MessageWidget = 3,
   MessageModifier = 4,
+  MessageColor = 5,
   Locked = 1000,
 }
