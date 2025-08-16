@@ -117,12 +117,8 @@ local skinners = {
       tab.background.Left:AdjustPointsOffset(-3, 0)
       tab.background.Right:AdjustPointsOffset(3, 0)
     end
-    tab.background.flash = tab.background:CreateTexture(nil, "BACKGROUND")
-    tab.background.flash:SetTexture("Interface\\PaperDollInfoFrame\\UI-Character-Tab-Highlight")
-    tab.background.flash:SetBlendMode("ADD")
-    tab.background.flash:SetAllPoints()
-    tab.background.flash:SetAlpha(0)
-    tab.background.flash:SetIgnoreParentAlpha(true)
+    tab.background.glow:Show()
+    tab.background.glow:SetAlpha(0)
     tab.background:SetFrameStrata("BACKGROUND")
     tab.background:SetAlpha(alpha)
     tab.background:SetFrameLevel(tab:GetFrameLevel() - 1)
@@ -131,7 +127,6 @@ local skinners = {
       if not enableHooks then
         return
       end
-      tab.background.flash:SetVertexColor(r, g, b)
       tab.background.glow:SetVertexColor(r, g, b)
       tab.background.ActiveLeft:SetVertexColor(r, g, b)
       tab.background.ActiveRight:SetVertexColor(r, g, b)
@@ -184,11 +179,13 @@ local skinners = {
       tab.background.HighlightLeft:Show()
       tab.background.HighlightRight:Show()
       tab.background.HighlightMiddle:Show()
+      tab.background.ActiveLeft:Show()
+      tab.background.ActiveRight:Show()
+      tab.background.ActiveMiddle:Show()
       if not tab.selected then
-        tab:SetAlpha(1)
-        tab.background:SetAlpha(0.8)
+        tab:SetAlpha(0.6)
       else
-        tab.background:SetAlpha(1)
+        tab:SetAlpha(1)
       end
     end)
     local function SetSelected(_, state)
@@ -203,12 +200,16 @@ local skinners = {
         tab.background.ActiveLeft:Show()
         tab.background.ActiveRight:Show()
         tab.background.ActiveMiddle:Show()
-        tab:SetAlpha(1)
+        tab:SetAlpha(0.8)
       else
         tab.background.ActiveLeft:Hide()
         tab.background.ActiveRight:Hide()
         tab.background.ActiveMiddle:Hide()
-        tab:SetAlpha(0.5)
+        tab:SetAlpha(0.3)
+      end
+
+      if tab:IsMouseMotionFocus() then
+        tab:GetScript("OnEnter")(tab)
       end
     end
     tab:HookScript("OnLeave", function()
@@ -218,17 +219,12 @@ local skinners = {
       tab.background.HighlightLeft:Hide()
       tab.background.HighlightRight:Hide()
       tab.background.HighlightMiddle:Hide()
+      tab.background.ActiveLeft:Hide()
+      tab.background.ActiveRight:Hide()
+      tab.background.ActiveMiddle:Hide()
       SetSelected(tab, tab.selected)
     end)
     hooksecurefunc(tab, "SetSelected", SetSelected)
-    hooksecurefunc(tab, "SetColor", function(_, r, g, b)
-      if not enableHooks then
-        return
-      end
-      tab.background.Left:SetVertexColor(r, g, b)
-      tab.background.Right:SetVertexColor(r, g, b)
-      tab.background.Middle:SetVertexColor(r, g, b)
-    end)
     if tab.color then
       tab:SetColor(tab.color.r, tab.color.g, tab.color.b)
     end
@@ -238,12 +234,6 @@ local skinners = {
 
     tab.background.FlashAnimation = tab.background:CreateAnimationGroup()
     tab.background.FlashAnimation:SetLooping("BOUNCE")
-    local alpha1 = tab.background.FlashAnimation:CreateAnimation("Alpha")
-    alpha1:SetChildKey("flash")
-    alpha1:SetFromAlpha(0)
-    alpha1:SetToAlpha(1)
-    alpha1:SetDuration(0.8)
-    alpha1:SetOrder(1)
     local alpha2 = tab.background.FlashAnimation:CreateAnimation("Alpha")
     alpha2:SetChildKey("glow")
     alpha2:SetFromAlpha(0)

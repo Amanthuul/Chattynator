@@ -84,6 +84,8 @@ local settings = {
   DISABLED_SKINS = {key = "disabled_skins", default = {}},
   CURRENT_SKIN = {key = "current_skin", default = "dark"},
 
+  STORE_MESSAGES = {key = "store_messages", default = true},
+
   SHOW_COMBAT_LOG = {key = "show_combat_log", default = true, refresh = {addonTable.Constants.RefreshReason.Tabs}},
   LOCKED = {key = "locked", default = false, refresh = {addonTable.Constants.RefreshReason.Tabs, addonTable.Constants.RefreshReason.Locked}},
 
@@ -96,6 +98,7 @@ local settings = {
   MESSAGE_FADE_TIME = {key = "message_fade_time", default = 25},
   ENABLE_MESSAGE_FADE = {key = "enable_message_fade", default = true},
   ENABLE_SMOOTH_SCROLLING_COMBAT = {key = "enable_smooth_scrolling_combat", default = false},
+  TAB_FLASH_ON = {key = "tab_flash_on", default = "all"},
 
   SHORTEN_FORMAT = {key = "shorten_format", default = "none", refresh = {addonTable.Constants.RefreshReason.MessageModifier}},
   CLASS_COLORS = {key = "class_colors", default = true, refresh = {addonTable.Constants.RefreshReason.MessageModifier}},

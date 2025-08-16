@@ -71,6 +71,9 @@ function addonTable.Display.ChatFrameMixin:OnLoad()
     if refreshState[addonTable.Constants.RefreshReason.Locked] then
       self.resizeWidget:SetShown(not addonTable.Config.Get(addonTable.Config.Options.LOCKED))
     end
+    if refreshState[addonTable.Constants.RefreshReason.MessageFont] then
+      self:UpdateEditBox()
+    end
   end)
 
   addonTable.CallbackRegistry:RegisterCallback("SettingChanged", function(_, settingName)
@@ -96,7 +99,7 @@ function addonTable.Display.ChatFrameMixin:OnLoad()
     elseif settingName == addonTable.Config.Options.SHOW_BUTTONS_ON_HOVER then
       self.ButtonsBar:Update()
     elseif settingName == addonTable.Config.Options.EDIT_BOX_POSITION and self:GetID() == 1 then
-      self:PositionEditBox()
+      self:UpdateEditBox()
     elseif settingName == addonTable.Config.Options.SHOW_TABS then
       self:ApplyTabsShowing()
       self.ButtonsBar:Update()
@@ -155,7 +158,7 @@ function addonTable.Display.ChatFrameMixin:RepositionBlizzardWidgets()
 
     -- We use the default edit box rather than instantiating our own so that the keyboard shortcuts to open it work
     ChatFrame1EditBox:SetParent(self)
-    self:PositionEditBox()
+    self:UpdateEditBox()
     addonTable.Skins.AddFrame("ChatEditBox", ChatFrame1EditBox)
   end
 end
@@ -187,7 +190,7 @@ function addonTable.Display.ChatFrameMixin:ApplyTabsShowing()
   end
 end
 
-function addonTable.Display.ChatFrameMixin:PositionEditBox()
+function addonTable.Display.ChatFrameMixin:UpdateEditBox()
   if self:GetID() ~= 1 then
     return
   end
@@ -195,13 +198,23 @@ function addonTable.Display.ChatFrameMixin:PositionEditBox()
   local position = addonTable.Config.Get(addonTable.Config.Options.EDIT_BOX_POSITION)
   ChatFrame1EditBox:ClearAllPoints()
   if position == "bottom" then
-    self.ScrollingMessages:SetPoint("BOTTOMRIGHT", 0, 38)
+    self.ScrollingMessages:SetPoint("BOTTOMRIGHT", 0, 6 + 32 * addonTable.Core.GetFontScalingFactor())
     ChatFrame1EditBox:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, 32)
     ChatFrame1EditBox:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, 32)
   elseif position == "top" then
     self.ScrollingMessages:SetPoint("BOTTOMRIGHT", 0, 5)
     ChatFrame1EditBox:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0)
     ChatFrame1EditBox:SetPoint("TOPRIGHT", self, "TOPRIGHT", 0, 0)
+  end
+
+  local font = addonTable.Core.GetFontByID(addonTable.Config.Get(addonTable.Config.Options.MESSAGE_FONT))
+  ChatFrame1EditBox:SetFontObject(font)
+  ChatFrame1EditBox:SetScale(addonTable.Core.GetFontScalingFactor())
+  local regions = {"header", "headerSuffix", "languageHeader", "NewcomerHint", "prompt"}
+  for _, r in pairs(regions) do
+    if ChatFrame1EditBox[r] then
+      ChatFrame1EditBox[r]:SetFontObject(font)
+    end
   end
 end
 
