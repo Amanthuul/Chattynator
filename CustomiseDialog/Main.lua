@@ -234,6 +234,13 @@ local function SetupLayout(parent)
     buttonPositionDropdown:Init(entries, values)
   end
   table.insert(allFrames, buttonPositionDropdown)
+  
+  local showScrollToEndFrame = addonTable.CustomiseDialog.Components.GetCheckbox(container, addonTable.Locales.SHOW_SCROLL_TO_END_FRAME, 28, function(state)
+    addonTable.Config.Set(addonTable.Config.Options.SHOW_SCROLL_TO_END_FRAME, state)
+  end)
+  showScrollToEndFrame.option = addonTable.Config.Options.SHOW_SCROLL_TO_END_FRAME
+  showScrollToEndFrame:SetPoint("TOP", allFrames[#allFrames], "BOTTOM", 0, 0)
+  table.insert(allFrames, showScrollToEndFrame)
 
   local editBoxPositionDropdown = addonTable.CustomiseDialog.Components.GetBasicDropdown(container, addonTable.Locales.EDIT_BOX_POSITION, function(value)
     return addonTable.Config.Get(addonTable.Config.Options.EDIT_BOX_POSITION) == value

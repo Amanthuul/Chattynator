@@ -15,6 +15,10 @@ function addonTable.Display.ButtonsBarMixin:OnLoad()
     if self.ScrollToBottomButton then
       self.ScrollToBottomButton:SetShown(destination ~= 0)
     end
+    if self.ScrollToEndFrame then
+      local ScrollToEndFrameShown = addonTable.Config.Get(addonTable.Config.Options.SHOW_SCROLL_TO_END_FRAME)
+      self.ScrollToEndFrame:SetShown(destination ~= 0 and ScrollToEndFrameShown)
+    end
   end
 
   self.hookedButtons = false
@@ -194,6 +198,24 @@ function addonTable.Display.ButtonsBarMixin:AddButtons()
   end)
   self.ScrollToBottomButton:Hide()
   addonTable.Skins.AddFrame("ChatButton", self.ScrollToBottomButton, {"scrollToEnd"})
+   self.ScrollToEndFrame = CreateFrame("Frame", nil, self)
+  self.ScrollToEndFrame:ClearAllPoints()
+  self.ScrollToEndFrame.line = self.ScrollToEndFrame:CreateTexture("line")
+  self.ScrollToEndFrame.line:SetPoint("BOTTOMLEFT", self.ScrollToEndFrame)
+  self.ScrollToEndFrame.line:SetPoint("BOTTOMRIGHT", self.ScrollToEndFrame)
+  self.ScrollToEndFrame.line:SetAtlas("Headhunter_LineHeader")
+  self.ScrollToEndFrame.line:SetHeight(1)
+  self.ScrollToEndFrame.line:SetDesaturated(true)
+  self.ScrollToEndFrame.gradient = self.ScrollToEndFrame:CreateTexture("gradient")
+  self.ScrollToEndFrame.gradient:SetAllPoints(self.ScrollToEndFrame, true)
+  self.ScrollToEndFrame.gradient:SetTexture("Interface/Buttons/WHITE8x8")
+  self.ScrollToEndFrame.gradient:SetHeight(20)
+  self.ScrollToEndFrame:SetScript("OnMouseDown", function()
+    self:GetParent().ScrollingMessages:ScrollToEnd()
+  end)
+  self.ScrollToEndFrame:Hide()
+  self.ScrollToEndFrame:SetPoint("BOTTOMLEFT", self:GetParent().ScrollingMessages, "BOTTOMLEFT", 0, -5)
+  addonTable.Skins.AddFrame("ScrollToEndFrame", self.ScrollToEndFrame, {"scrollToEndFrame"})
 end
 
 function addonTable.Display.ButtonsBarMixin:OnEnter()
@@ -232,12 +254,17 @@ function addonTable.Display.ButtonsBarMixin:OnLeave()
   end)
 end
 
+function addonTable.Display.ButtonsBarMixin:UpdateScrollToEndFrame()
+  self.ScrollToEndFrame:SetSize(self:GetParent().ScrollingMessages:GetWidth(), 20)
+end
+
 function addonTable.Display.ButtonsBarMixin:Update()
   if not self.ScrollToBottomButton then
     return
   end
 
   local position = addonTable.Config.Get(addonTable.Config.Options.BUTTON_POSITION)
+  local ScrollToEndFrameShown = addonTable.Config.Get(addonTable.Config.Options.SHOW_SCROLL_TO_END_FRAME)
 
   if addonTable.Config.Get(addonTable.Config.Options.SHOW_BUTTONS_ON_HOVER) then
     self.lockActive = false
@@ -342,4 +369,6 @@ function addonTable.Display.ButtonsBarMixin:Update()
     end
     self:SetSize(math.min(widthAvailable, currentWidth), 26)
   end
+  self:UpdateScrollToEndFrame()
+  self.ScrollToEndFrame:SetShown(self:GetParent().ScrollingMessages.destination ~= 0 and ScrollToEndFrameShown)
 end

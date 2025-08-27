@@ -62,6 +62,17 @@ local skinners = {
       button.Icon:SetVertexColor(0.925, 0.804, 0.063)
     end
   end,
+   ScrollToEndFrame = function(frame)
+    frame.gradient:SetGradient("VERTICAL", CreateColor(1, 1, 1, 0.3), CreateColor(0, 0, 0, 0))
+    frame:SetScript("OnEnter", function()
+      frame.gradient:SetGradient("VERTICAL", CreateColor(0.925, 0.804, 0.063, 0.3), CreateColor(0, 0, 0, 0))
+      frame.line:SetDesaturated(false)
+    end)
+    frame:SetScript("OnLeave", function()
+      frame.gradient:SetGradient("VERTICAL", CreateColor(1, 1, 1, 0.3), CreateColor(0, 0, 0, 0))
+      frame.line:SetDesaturated(true)
+    end)
+  end,
   ChatFrame = function(frame, tags)
     local alpha = 1 - addonTable.Config.Get("skins.blizzard.chat_transparency")
     table.insert(chatFrames, frame)

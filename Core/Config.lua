@@ -110,6 +110,7 @@ local settings = {
   BUTTON_POSITION = {key = "button_position", default = "outside_left"},
   SHOW_BUTTONS_ON_HOVER = {key = "show_buttons_on_hover", default = false},
   SHOW_TABS = {key = "show_tabs_1", default = "always", refresh = {addonTable.Constants.RefreshReason.Tabs}},
+  SHOW_SCROLL_TO_END_FRAME = {key = "SHOW_SCROLL_TO_END_FRAME", default = false},
 
   COPY_TIMESTAMPS = {key = "copy_timestamps", default = true},
   ENABLE_COMBAT_MESSAGES = {key = "enable_combat_messages", default = false},

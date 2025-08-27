@@ -76,6 +76,7 @@ L["STORE_MESSAGES"] = "Store messages"
 L["NEVER"] = "Never"
 L["ALL_MESSAGES"] = "All messages"
 L["WHISPERS_ONLY"] = "Whispers only"
+L["SHOW_SCROLL_TO_END_FRAME"] = "Scroll down by clicking at bottom of chat"
 
 L["MESSAGE_FONT_OUTLINE"] = "Message font outline"
 L["MESSAGE_SPACING"] = "Message spacing"

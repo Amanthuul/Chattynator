@@ -148,6 +148,18 @@ local skinners = {
       button.Icon:SetVertexColor(intensity, intensity, intensity)
     end
   end,
+  ScrollToEndFrame = function(frame)
+    frame.gradient:SetGradient("VERTICAL", CreateColor(1, 1, 1, 0.3), CreateColor(0, 0, 0, 0))
+    frame.line:SetColorTexture(hoverColor.r, hoverColor.g, hoverColor.b)
+    frame:SetScript("OnEnter", function()
+      frame.gradient:SetGradient("VERTICAL", CreateColor(hoverColor.r, hoverColor.g, hoverColor.b, 0.3), CreateColor(0, 0, 0, 0))
+      frame.line:SetDesaturated(false)
+    end)
+    frame:SetScript("OnLeave", function()
+      frame.gradient:SetGradient("VERTICAL", CreateColor(1, 1, 1, 0.3), CreateColor(0, 0, 0, 0))
+      frame.line:SetDesaturated(true)
+    end)
+  end,
   ChatFrame = function(frame, tags)
     local alpha = 1 - addonTable.Config.Get("skins.dark.chat_transparency")
     table.insert(chatFrames, frame)
