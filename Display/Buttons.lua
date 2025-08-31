@@ -266,7 +266,7 @@ function addonTable.Display.ButtonsBarMixin:Update()
   local position = addonTable.Config.Get(addonTable.Config.Options.BUTTON_POSITION)
   local ScrollToEndFrameShown = addonTable.Config.Get(addonTable.Config.Options.SHOW_SCROLL_TO_END_FRAME)
 
-  if addonTable.Config.Get(addonTable.Config.Options.SHOW_BUTTONS_ON_HOVER) then
+  if addonTable.Config.Get(addonTable.Config.Options.SHOW_BUTTONS) == "hover" then
     self.lockActive = false
     self:SetScript("OnEnter", self.OnEnter)
     self:SetScript("OnLeave", self.OnLeave)

@@ -36,6 +36,9 @@ function addonTable.Core.MigrateSettings()
       addonTable.Config.Set(addonTable.Config.Options.SHOW_BUTTONS_ON_HOVER, true)
     end
   end
+  if addonTable.Config.Get(addonTable.Config.Options.SHOW_BUTTONS) == "unset" then
+    addonTable.Config.Set(addonTable.Config.Options.SHOW_BUTTONS, addonTable.Config.Get("show_buttons_on_hover") and "hover" or "always")
+  end
   addonTable.Skins.InstallOptions()
 end
 
@@ -176,6 +179,17 @@ function addonTable.Core.Initialize()
   addonTable.CopyFrame = CreateFrame("Frame", "ChattynatorCopyChatDialog", UIParent, "ButtonFrameTemplate")
   Mixin(addonTable.CopyFrame, addonTable.Display.CopyChatMixin)
   addonTable.CopyFrame:OnLoad()
+
+  SlashCmdList["ChattynatorCopy"] = function()
+    if not addonTable.allChatFrames[1] then
+      return
+    end
+    if addonTable.CopyFrame:IsShown() then
+      addonTable.CopyFrame:Hide()
+    end
+    addonTable.CopyFrame:LoadMessages(addonTable.allChatFrames[1].filterFunc, addonTable.allChatFrames[1].startingIndex)
+  end
+  SLASH_ChattynatorCopy1 = "/copy"
 
   addonTable.Core.ApplyOverrides()
   addonTable.Core.InitializeChatCommandLogging()

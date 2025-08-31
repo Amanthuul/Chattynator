@@ -99,6 +99,8 @@ function addonTable.Display.ChatFrameMixin:OnLoad()
       self.ScrollingMessages:Render()
       self.ButtonsBar:UpdateScrollToEndFrame()
     elseif settingName == addonTable.Config.Options.SHOW_BUTTONS_ON_HOVER then
+    elseif settingName == addonTable.Config.Options.SHOW_BUTTONS then
+      self.ButtonsBar:SetShown(addonTable.Config.Get(addonTable.Config.Options.SHOW_BUTTONS) ~= "never")
       self.ButtonsBar:Update()
     elseif settingName == addonTable.Config.Options.EDIT_BOX_POSITION and self:GetID() == 1 then
       self:UpdateEditBox()
@@ -211,13 +213,6 @@ function addonTable.Display.ChatFrameMixin:UpdateEditBox()
 
   local font = addonTable.Core.GetFontByID(addonTable.Config.Get(addonTable.Config.Options.MESSAGE_FONT))
   ChatFrame1EditBox:SetFontObject(font)
-  if addonTable.Config.Get(addonTable.Config.Options.SHOW_FONT_SHADOW) then
-    ChatFrame1EditBox:SetShadowOffset(1, -1)
-    ChatFrame1EditBox:SetShadowColor(0, 0, 0, 0.8)
-  else
-    ChatFrame1EditBox:SetShadowOffset(0, 0)
-    ChatFrame1EditBox:SetShadowColor(0, 0, 0, 0)
-  end
   ChatFrame1EditBox:SetScale(addonTable.Core.GetFontScalingFactor())
   local regions = {"header", "headerSuffix", "languageHeader", "NewcomerHint", "prompt"}
   for _, r in pairs(regions) do

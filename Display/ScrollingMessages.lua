@@ -82,6 +82,13 @@ end
 function addonTable.Display.ScrollingMessagesMixin:Reset()
   self:ResetFading()
   self.currentFadeOffsetTime = 0
+
+  self.scrollInterpolator:Cancel()
+  self.destination = 0
+  self.scrollOffset = 0
+  if self.scrollCallback then
+    self.scrollCallback(self.destination)
+  end
 end
 
 function addonTable.Display.ScrollingMessagesMixin:ScrollTo(target, easyMode)
@@ -93,6 +100,7 @@ function addonTable.Display.ScrollingMessagesMixin:ScrollTo(target, easyMode)
     self:UpdateAlphas()
     return
   end
+  self.isScrolling = true
   if easyMode then
     self.scrollInterpolator:Interpolate(self.scrollOffset, target, 0.11, function(value)
       local diff = self.scrollOffset - value
@@ -101,11 +109,15 @@ function addonTable.Display.ScrollingMessagesMixin:ScrollTo(target, easyMode)
       end
       self.scrollOffset = value
       self:UpdateAlphas()
+    end, function()
+      self.isScrolling = false
     end)
   else
     self.scrollInterpolator:Interpolate(self.scrollOffset, target, 0.11, function(value)
       self.scrollOffset = value
       self:Render()
+    end, function()
+      self.isScrolling = false
     end)
   end
 end
@@ -125,7 +137,13 @@ function addonTable.Display.ScrollingMessagesMixin:OnMouseWheel(delta)
     delta = -1
   end
   self.currentFadeOffsetTime = GetTime()
-  self:ScrollBy(self.panExtent * delta)
+  local multiplier = 1
+  if IsShiftKeyDown() then
+    multiplier = 1000
+  elseif IsControlKeyDown() then
+    multiplier = 0.5
+  end
+  self:ScrollBy(self.panExtent * delta * multiplier)
 end
 
 function addonTable.Display.ScrollingMessagesMixin:UpdateAllocated()
@@ -330,7 +348,7 @@ function addonTable.Display.ScrollingMessagesMixin:Render(newMessages)
   end
   self:UpdateAlphas()
 
-  if self.destination == 0 and self.scrollOffset ~= 0 and newMessages then
+  if self.destination == 0 and self.scrollOffset ~= 0 and (newMessages or not self.isScrolling) then
     self:ScrollToEnd(shift > 0)
   end
 end

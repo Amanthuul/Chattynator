@@ -176,13 +176,22 @@ local skinners = {
     frame.background:SetAlpha(alpha)
 
     if frame.backgroundColor then
-      frame.background:SetVertexColor(frame.backgroundColor.r, frame.backgroundColor.g, frame.backgroundColor.b)
+      if addonTable.Config.Get("skins.dark.solid_chat_background") then
+        frame.background:SetColorTexture(frame.backgroundColor.r, frame.backgroundColor.g, frame.backgroundColor.b, alpha)
+      else
+        frame.background:SetVertexColor(frame.backgroundColor.r, frame.backgroundColor.g, frame.backgroundColor.b)
+      end
     end
     hooksecurefunc(frame, "SetBackgroundColor", function(_, r, g, b)
       if not enableHooks then
         return
       end
-      frame.background:SetVertexColor(r, g, b)
+      alpha = 1 - addonTable.Config.Get("skins.dark.chat_transparency")
+      if addonTable.Config.Get("skins.dark.solid_chat_background") then
+        frame.background:SetColorTexture(r, g, b, alpha)
+      else
+        frame.background:SetVertexColor(r, g, b)
+      end
     end)
   end,
   ChatEditBox = function(editBox, tags)
@@ -434,11 +443,13 @@ local function LoadSkin()
       if isSolid then
         for _, frame in ipairs(chatFrames) do
           frame.background:SetColorTexture(0, 0, 0)
+          frame:SetBackgroundColor(frame.backgroundColor.r, frame.backgroundColor.g, frame.backgroundColor.b)
         end
       else
         for _, frame in ipairs(chatFrames) do
           frame.background:SetTexture("Interface/AddOns/Chattynator/Assets/ChatBackground")
           frame.background:SetTexCoord(0, 1, 1, 0)
+          frame:SetBackgroundColor(frame.backgroundColor.r, frame.backgroundColor.g, frame.backgroundColor.b)
         end
       end
       local alpha = 1 - addonTable.Config.Get("skins.dark.chat_transparency")
@@ -450,7 +461,7 @@ local function LoadSkin()
 
   hooksecurefunc("ChatEdit_UpdateHeader", function(editBox)
     if tIndexOf(editBoxes, editBox) ~= nil then
-      local promptWidth = editBox:GetTextInsets() - 15
+      local promptWidth = editBox.header:GetWidth() + (editBox.headerSuffix:IsShown() and editBox.headerSuffix:GetWidth() or 0)
       local wantedOffset = addonTable.Messages.inset
       local realPosition = math.max(5, 3 + addonTable.Messages.inset - promptWidth)
       if addonTable.Messages.timestampFormat == " " then
