@@ -34,27 +34,22 @@ function addonTable.Core.GetFontByID(id)
   return fonts[id .. GetOutlineKey() .. GetShadowKey()] or fonts["default" .. GetOutlineKey() .. GetShadowKey()] or fonts["default"]
 end
 
-function addonTable.Core.OverwriteDefaultFont(id)
-  if not fonts[id] then
-    addonTable.Core.CreateFont(id, "")
-  end
+local modes = {
+  {"", ""},
+  {"", "SHADOW"},
+  {"OUTLINE", ""},
+  {"OUTLINE", "SHADOW"},
+  {"THICKOUTLINE", ""},
+  {"THICKOUTLINE", "SHADOW"},
+}
 
-  fonts["default"] = fonts[id] or fonts["default"]
-  -- Import outlines
-  if fonts[id .. "SHADOW"] then
-    fonts["default" .. "SHADOW"] = fonts[id .. "SHADOW"]
-  end
-  if fonts[id .. "OUTLINE"] then
-    fonts["default" .. "OUTLINE"] = fonts[id .. "OUTLINE"]
-  end
-  if fonts[id .. "OUTLINE" .. "SHADOW"] then
-    fonts["default" .. "OUTLINE" .. "SHADOW"] = fonts[id .. "OUTLINE" .. "SHADOW"]
-  end
-  if fonts[id .. "THICKOUTLINE"] then
-    fonts["default" .. "THICKOUTLINE"] = fonts[id .. "THICKOUTLINE"]
-  end
-  if fonts[id .. "THICKOUTLINE" .. "SHADOW"] then
-    fonts["default" .. "THICKOUTLINE" .. "SHADOW"] = fonts[id .. "THICKOUTLINE" .. "SHADOW"]
+function addonTable.Core.OverwriteDefaultFont(id)
+  for _, m in ipairs(modes) do
+    local key = m[1] .. m[2]
+    if not fonts[id .. key] and fonts["default" .. key] then
+      addonTable.Core.CreateFont(id, m[1], m[2])
+    end
+    fonts["default" .. key] = fonts[id .. key] or fonts["default" .. key]
   end
 
   addonTable.CallbackRegistry:TriggerEvent("RefreshStateChange", {[addonTable.Constants.RefreshReason.MessageFont] = true})
@@ -64,29 +59,39 @@ function addonTable.Core.GetFontScalingFactor()
   return addonTable.Config.Get(addonTable.Config.Options.MESSAGE_FONT_SIZE) / 14
 end
 
-function addonTable.Core.CreateFont(lsmPath, outline, shadow)
-  if lsmPath == "default" then
-    local alphabet = {"roman", "korean", "simplifiedchinese", "traditionalchinese", "russian"}
-    local members = {}
-    local coreFont = _G[fonts["default"]]
-    for _, a in ipairs(alphabet) do
-      local forAlphabet = coreFont:GetFontObjectForAlphabet(a)
-      if forAlphabet then
-        local file, height, flags = forAlphabet:GetFont()
-        table.insert(members, {
-          alphabet = a,
-          file = file,
-          height = height,
-          flags = outline,
-        })
-      end
+local alphabet = {"roman", "korean", "simplifiedchinese", "traditionalchinese", "russian"}
+
+local function GetDefaultMembers(outline)
+  local members = {}
+  local coreFont = _G[fonts["default"]]
+  for _, a in ipairs(alphabet) do
+    local forAlphabet = coreFont:GetFontObjectForAlphabet(a)
+    if forAlphabet then
+      local file, height, flags = forAlphabet:GetFont()
+      table.insert(members, {
+        alphabet = a,
+        file = file,
+        height = height,
+        flags = outline,
+      })
     end
+  end
+
+  return members
+end
+
+function addonTable.Core.CreateFont(lsmPath, outline, shadow, force)
+  if fonts[lsmPath .. outline .. shadow] and not force then
+    error("duplicate font creation " .. lsmPath .. outline .. shadow)
+  end
+  if lsmPath == "default" then
     local globalName = "ChattynatorFontdefault" .. outline .. shadow
-    local font = CreateFontFamily(globalName, members)
+    local font = CreateFontFamily(globalName, GetDefaultMembers(outline))
     if shadow == "SHADOW" then
       font:SetShadowOffset(1, -1)
       font:SetShadowColor(0, 0, 0, 0.8)
     end
+
     fonts["default" .. outline .. shadow] = globalName
   else
     local key = lsmPath .. outline .. shadow
@@ -95,15 +100,17 @@ function addonTable.Core.CreateFont(lsmPath, outline, shadow)
     if not path then
       return
     end
-    local font = CreateFont(globalName)
-    fonts[key] = globalName
+
+    local font = CreateFontFamily(globalName, GetDefaultMembers(outline))
     font:SetFont(path, 14, outline)
     font:SetTextColor(1, 1, 1)
     if shadow == "SHADOW" then
       font:SetShadowOffset(1, -1)
       font:SetShadowColor(0, 0, 0, 0.8)
     end
+
+    fonts[key] = globalName
   end
 end
 
-addonTable.Core.CreateFont("default", "", "") -- Clone the ChatFontNormal to avoid sizing issues
+addonTable.Core.CreateFont("default", "", "", true) -- Clone the ChatFontNormal to avoid sizing issues

@@ -21,8 +21,6 @@ function addonTable.Display.MessageRowMixin:OnLoad()
 
   self:SetFlattensRenderLayers(true)
 
-  self.DisplayString:SetPoint("TOPLEFT", self.Timestamp, "TOPRIGHT")
-
   self:AttachDebug()
 end
 
@@ -54,10 +52,12 @@ end
 ---@param width number
 function addonTable.Display.MessageRowMixin:UpdateWidgets(width)
   self.Bar:SetPoint("BOTTOM", 0, 1 + addonTable.Messages.spacing)
+  self.DisplayString:SetPoint("TOPLEFT", addonTable.Messages.inset, 0)
 
   self.Timestamp:SetWidth(addonTable.Messages.inset)
   self.DisplayString:SetWidth(width)
   self.DisplayString:SetIndentedWordWrap(not addonTable.Config.Get(addonTable.Config.Options.SHOW_TIMESTAMP_SEPARATOR) and addonTable.Config.Get(addonTable.Config.Options.TIMESTAMP_FORMAT) == " ")
+  self.DisplayString:SetText("")
 
   for _, fontString in ipairs({self.DisplayString, self.Timestamp}) do
     fontString:SetFontObject(addonTable.Messages.font)

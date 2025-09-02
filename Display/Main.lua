@@ -51,6 +51,7 @@ function addonTable.Display.ChatFrameMixin:OnLoad()
   self.ButtonsBar = CreateFrame("Frame", nil, self)
   Mixin(self.ButtonsBar, addonTable.Display.ButtonsBarMixin)
   self.ButtonsBar:OnLoad()
+  self.ButtonsBar:SetShown(addonTable.Config.Get(addonTable.Config.Options.SHOW_BUTTONS) ~= "never")
 
   addonTable.CallbackRegistry:RegisterCallback("Render", function(_, newMessages)
     if self:GetID() == 0 then
@@ -200,11 +201,13 @@ function addonTable.Display.ChatFrameMixin:UpdateEditBox()
 
   local position = addonTable.Config.Get(addonTable.Config.Options.EDIT_BOX_POSITION)
   ChatFrame1EditBox:ClearAllPoints()
+  ChatFrame1EditBox:SetScale(addonTable.Core.GetFontScalingFactor())
+
   if position == "bottom" then
     local _, _, _, clampBottom = self:GetClampRectInsets()
-    self.ScrollingMessages:SetPoint("BOTTOMRIGHT", 0, 6 + ChatFrame1EditBox:GetHeight() - clampBottom)
-    ChatFrame1EditBox:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, ChatFrame1EditBox:GetHeight() / ChatFrame1EditBox:GetScale() - clampBottom)
-    ChatFrame1EditBox:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, ChatFrame1EditBox:GetHeight() / ChatFrame1EditBox:GetScale() - clampBottom)
+    self.ScrollingMessages:SetPoint("BOTTOMRIGHT", 0, 6 + ChatFrame1EditBox:GetHeight() * ChatFrame1EditBox:GetScale() - clampBottom)
+    ChatFrame1EditBox:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, ChatFrame1EditBox:GetHeight() - clampBottom * ChatFrame1EditBox:GetScale())
+    ChatFrame1EditBox:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, ChatFrame1EditBox:GetHeight() - clampBottom * ChatFrame1EditBox:GetScale())
   elseif position == "top" then
     self.ScrollingMessages:SetPoint("BOTTOMRIGHT", 0, 5)
     ChatFrame1EditBox:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0)
@@ -212,19 +215,9 @@ function addonTable.Display.ChatFrameMixin:UpdateEditBox()
   end
 
   local font = addonTable.Core.GetFontByID(addonTable.Config.Get(addonTable.Config.Options.MESSAGE_FONT))
-  ChatFrame1EditBox:SetFontObject(font)
-  ChatFrame1EditBox:SetScale(addonTable.Core.GetFontScalingFactor())
-  local regions = {"header", "headerSuffix", "languageHeader", "NewcomerHint", "prompt"}
-  for _, r in pairs(regions) do
-    if ChatFrame1EditBox[r] then
-      ChatFrame1EditBox[r]:SetFontObject(font)
-      if addonTable.Config.Get(addonTable.Config.Options.SHOW_FONT_SHADOW) then
-        ChatFrame1EditBox[r]:SetShadowOffset(1, -1)
-        ChatFrame1EditBox[r]:SetShadowColor(0, 0, 0, 0.8)
-      else
-        ChatFrame1EditBox[r]:SetShadowOffset(0, 0)
-        ChatFrame1EditBox[r]:SetShadowColor(0, 0, 0, 0)
-      end
+  for _, r in pairs({ChatFrame1EditBox:GetRegions()}) do
+    if r:IsObjectType("FontString") then
+      r:SetFontObject(font)
     end
   end
 
