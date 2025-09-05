@@ -170,7 +170,7 @@ function addonTable.Display.TabsBarMixin:ApplyFlashing(newMessages)
     while newMessages > 0 do
       newMessages = newMessages - 1
       local data = addonTable.Messages:GetMessageRaw(1 + #messages)
-      if data.typeInfo.type == "WHISPER" or data.typeInfo.type == "BN_WHISPER" then
+      if (data.typeInfo.type == "WHISPER" or data.typeInfo.type == "BN_WHISPER") and (not data.typeInfo.event or not data.typeInfo.event:match("_INFORM$")) then
         table.insert(messages, data)
       end
     end
@@ -180,7 +180,10 @@ function addonTable.Display.TabsBarMixin:ApplyFlashing(newMessages)
   elseif state == "all" then
     while newMessages > 0 do
       newMessages = newMessages - 1
-      table.insert(messages, addonTable.Messages:GetMessageRaw(1 + #messages))
+      local data = addonTable.Messages:GetMessageRaw(1 + #messages)
+      if not data.typeInfo.event or not data.typeInfo.event:match("_INFORM$") then
+        table.insert(messages, data)
+      end
     end
   else
     return
@@ -192,7 +195,7 @@ function addonTable.Display.TabsBarMixin:ApplyFlashing(newMessages)
     end
   end
 
-  if tabsMatching[self.chatFrame.tabIndex] then
+  if state ~= "whispers" and tabsMatching[self.chatFrame.tabIndex] then
     return
   end
 
@@ -571,6 +574,7 @@ addonTable.CallbackRegistry:RegisterCallback("Render", function(_, newMessages)
           tabConfig.isTemporary = true
           table.insert(window.tabs, tabConfig)
           addonTable.CallbackRegistry:TriggerEvent("RefreshStateChange", {[addonTable.Constants.RefreshReason.Tabs] = true})
+          addonTable.allChatFrames[targetWindow].TabsBar.Tabs[#window.tabs]:SetFlashing(true)
         end
       end
     end

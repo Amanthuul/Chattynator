@@ -462,32 +462,37 @@ function addonTable.MessagesMonitorMixin:OnEvent(eventName, ...)
       end
     end)
   elseif eventName == "PLAYER_REPORT_SUBMITTED" then -- Remove messages from chat log
+    if self.messageCount < self.newMessageStartPoint then
+      return
+    end
     local reportedGUID = ...
     local removedIDs = {}
-    for index = #self.messageCount, self.newMessageStartPoint, -1 do
-      for index, m in ipairs(self.messages) do
-        local guid = self.formatters[index] and self.formatters[index].playerGUID
-        if guid == reportedGUID then
-          removedIDs[m.id] = true
-          table.remove(self.messages, index)
-          self.messagesProcessed[index] = nil
-          self.heights[index] = nil
-          if index < self.messageCount then
-            for j = index + 1, self.messageCount do
-              if self.messagesProcessed[j] then
-                self.messagesProcessed[j-1] = self.messagesProcessed[j]
-                self.messagesProcessed[j] = nil
-              end
+    for index = self.messageCount, self.newMessageStartPoint, -1 do
+      local m = self.messages[index]
+      local guid = self.formatters[index] and self.formatters[index].playerGUID
+      if guid == reportedGUID then
+        removedIDs[m.id] = true
+        table.remove(self.messages, index)
+        self.messagesProcessed[index] = nil
+        self.heights[index] = nil
+        if index < self.messageCount then
+          for j = index + 1, self.messageCount do
+            if self.messagesProcessed[j] then
+              self.messagesProcessed[j-1] = self.messagesProcessed[j]
+              self.heights[j-1] = self.heights[j]
+
+              self.messagesProcessed[j] = nil
+              self.heights[j] = nil
             end
           end
-          self.messageCount = self.messageCount - 1
-          addonTable.CallbackRegistry:TriggerEvent("ResetOneMessageCache", id)
         end
+        self.messageCount = self.messageCount - 1
+        addonTable.CallbackRegistry:TriggerEvent("ResetOneMessageCache", m.id)
       end
     end
 
     if self.newMessageStartPoint > 1 then
-      for index = #self.storeCount, self.newMessageStartPoint do
+      for index = self.storeCount, 1, -1 do
         local m = self.store[index]
         if removedIDs[m.id] then
           table.remove(self.store, index)
@@ -760,7 +765,7 @@ function addonTable.MessagesMonitorMixin:ReduceMessages()
       self.messagesProcessed[#self.messages] = oldProcessed[i]
     end
   end
-  self.newMessageStartPoint = self.newMessageStartPoint - (#oldMessages - #self.messages)
+  self.newMessageStartPoint = math.max(1, self.newMessageStartPoint - (#oldMessages - #self.messages))
   self.messageCount = #self.messages
 end
 
