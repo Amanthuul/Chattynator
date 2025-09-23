@@ -240,18 +240,26 @@ function addonTable.Display.ButtonsBarMixin:OnLeave()
   if self.hideTimer then
     self.hideTimer:Cancel()
   end
-  self.hideTimer = C_Timer.NewTimer(2, function()
-    self.fadeInterpolator:Interpolate(self.buttons[1]:GetAlpha(), 0, 0.15, function(value)
-      for _, b in ipairs(self.buttons) do
-        b:SetAlpha(value)
+  local function Hide()
+    self.hideTimer = C_Timer.NewTimer(2, function()
+      if Menu.GetManager():IsAnyMenuOpen() and (InCombatLockdown() or tIndexOf(Menu.GetOpenMenuTags(), "MENU_CHAT_SHORTCUTS") ~= nil) then
+        Hide()
+        return
       end
-    end, function()
-      for _, b in ipairs(self.buttons) do
-        b:Hide()
-      end
+
+      self.fadeInterpolator:Interpolate(self.buttons[1]:GetAlpha(), 0, 0.15, function(value)
+        for _, b in ipairs(self.buttons) do
+          b:SetAlpha(value)
+        end
+      end, function()
+        for _, b in ipairs(self.buttons) do
+          b:Hide()
+        end
+      end)
+      self.active = false
     end)
-    self.active = false
-  end)
+  end
+  Hide()
 end
 
 function addonTable.Display.ButtonsBarMixin:UpdateScrollToEndFrame()
@@ -313,10 +321,8 @@ function addonTable.Display.ButtonsBarMixin:Update()
     end
     if position:match("inside") then
       offsetX, offsetY = 26 + 2, -2
-      self.ScrollToBottomButton:SetPoint("BOTTOMLEFT", self:GetParent().ScrollingMessages, "BOTTOMLEFT", 2, 5)
-    else
-      self.ScrollToBottomButton:SetPoint("BOTTOMRIGHT", self:GetParent().ScrollingMessages, "BOTTOMLEFT", -5, 5)
     end
+    self.ScrollToBottomButton:SetPoint("BOTTOMRIGHT", self:GetParent().ScrollingMessages, "BOTTOMRIGHT", -2, 5)
     local startingOffsetY = offsetY
     self:ClearAllPoints()
     self:SetPoint("TOPRIGHT", self:GetParent().ScrollingMessages, "TOPLEFT", offsetX, offsetY)
@@ -330,7 +336,7 @@ function addonTable.Display.ButtonsBarMixin:Update()
       offsetY = offsetY - b:GetHeight() - 5
     end
 
-    local heightAvailable = self:GetParent().ScrollingMessages:GetHeight() - 2 - self.ScrollToBottomButton:GetHeight() + startingOffsetY
+    local heightAvailable = self:GetParent().ScrollingMessages:GetHeight() - 2 + startingOffsetY
     local currentHeight = 0
     for _, b in ipairs(self.buttons) do
       currentHeight = currentHeight + b:GetHeight() + 5
@@ -347,7 +353,7 @@ function addonTable.Display.ButtonsBarMixin:Update()
       end
     end
     self.ScrollToBottomButton:ClearAllPoints()
-    self.ScrollToBottomButton:SetPoint("BOTTOMLEFT", self:GetParent().ScrollingMessages, "BOTTOMLEFT", 2, 5)
+    self.ScrollToBottomButton:SetPoint("BOTTOMRIGHT", self:GetParent().ScrollingMessages, "BOTTOMRIGHT", -2, 5)
     self:ClearAllPoints()
     self:SetPoint("TOPLEFT", self:GetParent().ScrollingMessages, "TOPLEFT", offsetX, offsetY)
     for _, b in ipairs(self.buttons) do
