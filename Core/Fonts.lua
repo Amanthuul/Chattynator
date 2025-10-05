@@ -1,8 +1,6 @@
 ---@class addonTableChattynator
 local addonTable = select(2, ...)
 
-local LibSharedMedia = LibStub("LibSharedMedia-3.0")
-
 local fonts = {
   default = "ChatFontNormal",
 }
@@ -96,7 +94,8 @@ function addonTable.Core.CreateFont(lsmPath, outline, shadow, force)
   end
   if lsmPath == "default" then
     CreateFontFamily(globalName, GetDefaultMembers(outline))
-  else
+  elseif LibStub and LibStub:GetLibrary("LibSharedMedia-3.0", true) then
+    local LibSharedMedia = LibStub("LibSharedMedia-3.0")
     local path = LibSharedMedia:Fetch("font", lsmPath, true)
     if not path then
       return
@@ -105,6 +104,8 @@ function addonTable.Core.CreateFont(lsmPath, outline, shadow, force)
     local font = CreateFontFamily(globalName, GetDefaultMembers(outline))
     font:SetFont(path, 14, outline)
     font:SetTextColor(1, 1, 1)
+  else
+    return
   end
 
   fonts[key] = globalName

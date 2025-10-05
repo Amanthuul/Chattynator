@@ -171,7 +171,7 @@ function addonTable.Display.TabsBarMixin:ApplyFlashing(newMessages)
     while newMessages > 0 do
       newMessages = newMessages - 1
       local data = addonTable.Messages:GetMessageRaw(1 + #messages)
-      if (data.typeInfo.type == "WHISPER" or data.typeInfo.type == "BN_WHISPER") and (not data.typeInfo.event or not data.typeInfo.event:match("_INFORM$")) then
+      if data and (data.typeInfo.type == "WHISPER" or data.typeInfo.type == "BN_WHISPER") and (not data.typeInfo.event or not data.typeInfo.event:match("_INFORM$")) then
         table.insert(messages, data)
       end
     end
@@ -182,7 +182,7 @@ function addonTable.Display.TabsBarMixin:ApplyFlashing(newMessages)
     while newMessages > 0 do
       newMessages = newMessages - 1
       local data = addonTable.Messages:GetMessageRaw(1 + #messages)
-      if not data.typeInfo.event or not data.typeInfo.event:match("_INFORM$") then
+      if data and (not data.typeInfo.event or not data.typeInfo.event:match("_INFORM$")) then
         table.insert(messages, data)
       end
     end
@@ -294,11 +294,7 @@ function addonTable.Display.TabsBarMixin:RefreshTabs()
           addonTable.API.CustomTabs[tabData.custom].install(self.customHolders[tabData.custom])
         else
           self.chatFrame.ScrollingMessages:Show()
-          if self.chatFrame.tabIndex == tabButton:GetID() then
-            self.chatFrame:SetFilter(tabButton.filter)
-          else
-            self.chatFrame:SetTabSelectedAndFilter(tabButton:GetID(), tabButton.filter)
-          end
+          self.chatFrame:SetTabSelectedAndFilter(tabButton:GetID(), tabButton.filter)
           self.chatFrame.ScrollingMessages:Render()
         end
       elseif mouseButton == "RightButton" then
