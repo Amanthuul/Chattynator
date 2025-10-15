@@ -121,9 +121,6 @@ function addonTable.Core.ApplyOverrides()
         end
         _G["ChatFrame1Tab"].IsVisible = function() return true end -- Workaround for TSM assuming chat tabs are always visible
       end)
-    elseif event == "UPDATE_CHAT_WINDOWS" then
-      frame:UnregisterEvent("UPDATE_CHAT_WINDOWS")
-      GeneralDockManagerOverflowButton:SetParent(addonTable.hiddenFrame)
     end
   end)
 
