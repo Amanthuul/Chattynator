@@ -194,7 +194,7 @@ local skinners = {
     if tab:GetFontString() == nil then
       tab:SetText(" ")
     end
-    tab.glow = tab:CreateTexture("BORDER")
+    tab.glow = tab:CreateTexture(nil, "BORDER")
     tab.glow:SetTexture("Interface\\AddOns\\Chattynator\\Assets\\ElvUIChatTabNewMessageFlash")
     tab.glow:SetPoint("BOTTOMLEFT", 8, -2)
     tab.glow:SetPoint("BOTTOMRIGHT", -8, -2)
@@ -329,7 +329,7 @@ local skinners = {
     S:HandleCheckBox(frame)
   end,
   Slider = function(frame)
-    S:HandleSliderFrame(frame)
+    S:HandleStepSlider(frame)
   end,
   InsetFrame = function(frame)
     if frame.NineSlice then

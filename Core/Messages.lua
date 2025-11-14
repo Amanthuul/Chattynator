@@ -264,14 +264,19 @@ function addonTable.MessagesMonitorMixin:OnLoad()
     GetChatTimestampFormat = function() return nil end,
     FCFManager_ShouldSuppressMessage = function() return false end,
     ChatFrame_CheckAddChannel = function(_, _, channelID)
-      return true or ChatFrame_AddChannel(self, C_ChatInfo.GetChannelShortcutForChannelID(channelID)) ~= nil
+      return true--ChatFrame_AddChannel(self, C_ChatInfo.GetChannelShortcutForChannelID(channelID)) ~= nil
     end,
     ChatTypeInfo = addonTable.Config.Get(addonTable.Config.Options.CHAT_COLORS),
   }
 
   setmetatable(env, {__index = _G, __newindex = _G})
-  setfenv(ChatFrame_MessageEventHandler, env)
-  setfenv(ChatFrame_SystemEventHandler, env)
+  if ChatFrameMixin and ChatFrameMixin.MessageEventHandler then
+    setfenv(ChatFrameMixin.MessageEventHandler, env)
+    setfenv(ChatFrameMixin.SystemEventHandler, env)
+  else
+    setfenv(ChatFrame_MessageEventHandler, env)
+    setfenv(ChatFrame_SystemEventHandler, env)
+  end
   self:SetScript("OnEvent", self.OnEvent)
 
   addonTable.CallbackRegistry:RegisterCallback("SettingChanged", function(_, settingName)
@@ -336,6 +341,13 @@ function addonTable.MessagesMonitorMixin:OnLoad()
       self:UpdateChannels()
     end)
     hooksecurefunc("ChatFrame_RemoveCommunitiesChannel", function()
+      self:UpdateChannels()
+    end)
+  elseif ChatFrameUtil and ChatFrameUtil.AddCommunitiesChannel then
+    hooksecurefunc(ChatFrameUtil, "AddCommunitiesChannel", function()
+      self:UpdateChannels()
+    end)
+    hooksecurefunc(ChatFrameUtil, "RemoveCommunitiesChannel", function()
       self:UpdateChannels()
     end)
   end
@@ -546,7 +558,13 @@ function addonTable.MessagesMonitorMixin:OnEvent(eventName, ...)
     self.lineID = lineID
     self.playerGUID = playerGUID
     self.lockType = true
-    ChatFrame_OnEvent(self, eventName, ...)
+    if ChatFrameMixin and ChatFrameMixin.OnEvent then
+      if not ChatFrameMixin.SystemEventHandler(self, eventName, ...) then
+        ChatFrameMixin.MessageEventHandler(self, eventName, ...)
+      end
+    else
+      ChatFrame_OnEvent(self, eventName, ...)
+    end
     self.lockType = false
     self.incomingType = nil
     self.playerGUID = nil
