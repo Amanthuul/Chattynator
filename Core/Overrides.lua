@@ -74,7 +74,7 @@ function addonTable.Core.ApplyOverrides()
     end
 
     ChatFrameUtil.ScrollToBottom = function()
-      addonTable.allChatFrames[1].ScrollingMessages:ScrollToEnd()
+      addonTable.allChatFrames[1].ScrollingMessages:ScrollToBottom()
     end
   elseif ChatFrame_ChatPageUp then
     ChatFrame_ChatPageUp = function()
@@ -86,7 +86,7 @@ function addonTable.Core.ApplyOverrides()
     end
 
     ChatFrame_ScrollToBottom = function()
-      addonTable.allChatFrames[1].ScrollingMessages:ScrollToEnd()
+      addonTable.allChatFrames[1].ScrollingMessages:ScrollToBottom()
     end
   end
 
@@ -126,6 +126,9 @@ function addonTable.Core.ApplyOverrides()
                 tab:UnregisterEvent(name)
               end
             end)
+          end
+          if tabName == "ChatFrame1" and C_EventUtils.IsEventValid("CAUTIONARY_CHAT_MESSAGE") then
+            ChatFrame1:RegisterEvent("CAUTIONARY_CHAT_MESSAGE")
           end
           tab:HookScript("OnEvent", function(_, e)
             if e == "UPDATE_CHAT_WINDOWS" then
