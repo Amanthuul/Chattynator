@@ -17,7 +17,7 @@ function addonTable.Display.ButtonsBarMixin:OnLoad()
     end
     if self.ScrollToEndFrame then
       local ScrollToEndFrameShown = addonTable.Config.Get(addonTable.Config.Options.SHOW_SCROLL_TO_END_FRAME)
-      self.ScrollToEndFrame:SetShown(destination ~= 0 and ScrollToEndFrameShown)
+      self.ScrollToEndFrame:SetShown(not self:GetParent().ScrollingMessages:AtBottom() and ScrollToEndFrameShown)
     end
   end)
 
@@ -375,5 +375,5 @@ function addonTable.Display.ButtonsBarMixin:Update()
     self:SetSize(math.min(widthAvailable, currentWidth), 26)
   end
   self:UpdateScrollToEndFrame()
-  self.ScrollToEndFrame:SetShown(self:GetParent().ScrollingMessages.destination ~= 0 and ScrollToEndFrameShown)
+  self.ScrollToEndFrame:SetShown(not self:GetParent().ScrollingMessages:AtBottom() and ScrollToEndFrameShown)
 end
