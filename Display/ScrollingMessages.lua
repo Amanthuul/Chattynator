@@ -17,12 +17,19 @@ function addonTable.Display.ScrollingMessagesMixin:MyOnLoad()
 
   self:SetFading(addonTable.Config.Get(addonTable.Config.Options.ENABLE_MESSAGE_FADE))
   self:SetTimeVisible(addonTable.Config.Get(addonTable.Config.Options.MESSAGE_FADE_TIME))
+  self:SetSpacing(addonTable.Config.Get(addonTable.Config.Options.LINE_SPACING))
 
   self:SetScript("OnMouseWheel", function(_, delta)
+    local multiplier = 1
+    if IsShiftKeyDown() then
+      multiplier = 1000
+    elseif IsControlKeyDown() then
+      multiplier = 5
+    end
     if delta > 0 then
-      self:ScrollUp()
+      self:ScrollByAmount(1 * multiplier)
     else
-      self:ScrollDown()
+      self:ScrollByAmount(-1 * multiplier)
     end
   end)
 
@@ -43,6 +50,8 @@ function addonTable.Display.ScrollingMessagesMixin:MyOnLoad()
       self:SetFading(addonTable.Config.Get(addonTable.Config.Options.ENABLE_MESSAGE_FADE))
     elseif settingName == addonTable.Config.Options.MESSAGE_FADE_TIME then
       self:SetTimeVisible(addonTable.Config.Get(addonTable.Config.Options.MESSAGE_FADE_TIME))
+    elseif settingName == addonTable.Config.Options.LINE_SPACING then
+      self:SetSpacing(addonTable.Config.Get(addonTable.Config.Options.LINE_SPACING))
     end
   end)
 end
@@ -54,8 +63,10 @@ end
 local function GetPrefix(timestamp)
   if addonTable.Config.Get(addonTable.Config.Options.SHOW_TIMESTAMP_SEPARATOR) then
     return "|cff989898" .. date(addonTable.Messages.timestampFormat, timestamp) .. " || |r"
+  elseif addonTable.Messages.timestampFormat == " " then
+    return ""
   else
-    return "|cff989898" .. date(addonTable.Messages.timestampFormat, timestamp) .. "|r"
+    return "|cff989898" .. date(addonTable.Messages.timestampFormat, timestamp) .. "|r "
   end
 end
 
