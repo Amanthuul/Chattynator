@@ -82,6 +82,7 @@ L["WHISPERS_ONLY"] = "Whispers only"
 L["SHOW_SCROLL_TO_END_FRAME"] = "Scroll down by clicking at bottom of chat"
 
 L["MESSAGE_FONT_OUTLINE"] = "Message font outline"
+L["MESSAGE_SPACING"] = "Message spacing"
 L["LINE_SPACING"] = "Line spacing"
 L["MESSAGE_FADE_TIME"] = "Message fade time"
 L["MESSAGE_FONT_SHADOW"] = "Message font shadow"
