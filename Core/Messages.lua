@@ -295,21 +295,12 @@ function addonTable.MessagesMonitorMixin:OnLoad()
       self.font = addonTable.Core.GetFontByID(addonTable.Config.Get(addonTable.Config.Options.MESSAGE_FONT))
       self.scalingFactor = addonTable.Core.GetFontScalingFactor()
       self:SetInset()
-      addonTable.CallbackRegistry:TriggerEvent("MessageDisplayChanged")
-      if self:GetScript("OnUpdate") == nil then
-        self:SetScript("OnUpdate", function()
-          self:SetScript("OnUpdate", nil)
-          addonTable.CallbackRegistry:TriggerEvent("Render")
-        end)
-      end
+      self.pending = 0
+      addonTable.CallbackRegistry:TriggerEvent("Render")
     elseif state[addonTable.Constants.RefreshReason.MessageColor] then
       self:ReplaceColors()
-      if self:GetScript("OnUpdate") == nil then
-        self:SetScript("OnUpdate", function()
-          self:SetScript("OnUpdate", nil)
-          addonTable.CallbackRegistry:TriggerEvent("Render")
-        end)
-      end
+      self.pending = 0
+      addonTable.CallbackRegistry:TriggerEvent("Render")
     end
   end)
 
@@ -441,16 +432,12 @@ function addonTable.MessagesMonitorMixin:OnEvent(eventName, ...)
   elseif eventName == "GUILD_MOTD" then
     self:ShowGMOTD()
   elseif eventName == "UI_SCALE_CHANGED" then
+    self:SetInset()
     C_Timer.After(0, function()
       addonTable.CallbackRegistry:TriggerEvent("MessageDisplayChanged")
-      if self:GetScript("OnUpdate") == nil and self.playerLoginFired then
-        self:SetScript("OnUpdate", function()
-          self:SetScript("OnUpdate", nil)
-          addonTable.CallbackRegistry:TriggerEvent("Render")
-        end)
-      end
+      self.pending = 0
+      addonTable.CallbackRegistry:TriggerEvent("Render")
     end)
-    self:SetInset()
   elseif eventName == "PLAYER_REPORT_SUBMITTED" then -- Remove messages from chat log
     if self.messageCount < self.newMessageStartPoint then
       return
@@ -508,6 +495,7 @@ function addonTable.MessagesMonitorMixin:OnEvent(eventName, ...)
 
     self:UpdateChannels()
 
+    self.pending = 0
     addonTable.CallbackRegistry:TriggerEvent("Render")
   elseif eventName == "PLAYER_ENTERING_WORLD" then
     self.defaultLanguage = GetDefaultLanguage()
@@ -1138,8 +1126,8 @@ function addonTable.MessagesMonitorMixin:MessageEventHandler(event, ...)
       self:AddMessage(format(globalstring, arg8, arg4, arg2, arg5), info.r, info.g, info.b, info.id);
     elseif ( arg1 == "INVITE" ) then
       local playerLink = GetPlayerLink(arg2, ("[%s]"):format(arg2), arg11);
-      local accessID = ChatHistory_GetAccessID(chatGroup, chatTarget);
-      local typeID = (not issecretvalue or not issecretvalue(arg12)) and ChatHistory_GetAccessID(infoType, chatTarget, arg12) or accessID
+      local accessID = 0
+      local typeID = 0
       self:AddMessage(string.format(globalstring, arg4, playerLink), info.r, info.g, info.b, info.id, accessID, typeID);
     else
       self:AddMessage(string.format(globalstring, arg8, arg4, arg2), info.r, info.g, info.b, info.id);
@@ -1151,19 +1139,20 @@ function addonTable.MessagesMonitorMixin:MessageEventHandler(event, ...)
     if issecretvalue and issecretvalue(arg1) then
       return
     end
-    local accessID = ChatHistory_GetAccessID(GetChatCategory(type), arg8);
-    local typeID = (not issecretvalue or not issecretvalue(arg12)) and ChatHistory_GetAccessID(infoType, chatTarget, arg12) or accessID
 
-    if not issecretvalue or not issecretvalue(arg1) and arg1 == "YOU_CHANGED" and C_ChatInfo.GetChannelRuleset and C_ChatInfo.GetChannelRuleset(arg8) == Enum.ChatChannelRuleset.Mentor then
+    local accessID = 0
+    local typeID = 0
+
+    if arg1 == "YOU_CHANGED" and C_ChatInfo.GetChannelRuleset and C_ChatInfo.GetChannelRuleset(arg8) == Enum.ChatChannelRuleset.Mentor then
       --self:UpdateDefaultChatTarget();
       --self.editBox:UpdateNewcomerEditBoxHint();
     else
-      if not issecretvalue or not issecretvalue(arg1) and arg1 == "YOU_LEFT" and self.editBox.UpdateNewcomerEditBoxHint then
+      if arg1 == "YOU_LEFT" and self.editBox.UpdateNewcomerEditBoxHint then
         self.editBox:UpdateNewcomerEditBoxHint(arg8);
       end
 
       local globalstring;
-      if ( not issecretvalue or not issecretvalue(arg1) and arg1 == "TRIAL_RESTRICTED" ) then
+      if arg1 == "TRIAL_RESTRICTED" then
         globalstring = CHAT_TRIAL_RESTRICTED_NOTICE_TRIAL;
       else
         globalstring = _G["CHAT_"..arg1.."_NOTICE_BN"];
@@ -1220,7 +1209,7 @@ function addonTable.MessagesMonitorMixin:MessageEventHandler(event, ...)
     self:AddMessage(message, info.r, info.g, info.b, info.id);
   elseif ( type == "BN_INLINE_TOAST_BROADCAST" ) then
     if ( arg1 ~= "" ) then
-      if C_StringUtil.RemoveContiguousSpaces then
+      if C_StringUtil and C_StringUtil.RemoveContiguousSpaces then
         arg1 = trim(C_StringUtil.RemoveContiguousSpaces(arg1, 4))
       else
         arg1 = RemoveNewlines(RemoveExtraSpaces(arg1));
@@ -1231,8 +1220,10 @@ function addonTable.MessagesMonitorMixin:MessageEventHandler(event, ...)
     end
   elseif ( type == "BN_INLINE_TOAST_BROADCAST_INFORM" ) then
     if ( arg1 ~= "" ) then
-      if not issecretvalue or not issecretvalue(arg1) then
-        arg1 = RemoveExtraSpaces(arg1);
+      if C_StringUtil and C_StringUtil.RemoveContiguousSpaces then
+        arg1 = C_StringUtil.RemoveContiguousSpaces(arg1, 4)
+      else
+        arg1 = RemoveExtraSpaces(arg1)
       end
       self:AddMessage(BN_INLINE_TOAST_BROADCAST_INFORM, info.r, info.g, info.b, info.id);
     end
@@ -1252,7 +1243,9 @@ function addonTable.MessagesMonitorMixin:MessageEventHandler(event, ...)
       local showLink = 1;
       if ( strsub(type, 1, 7) == "MONSTER" or strsub(type, 1, 9) == "RAID_BOSS") then
         showLink = nil;
-      elseif not issecretvalue or not issecretvalue(msg) then
+      elseif C_StringUtil and C_StringUtil.EscapeLuaFormatString then
+        msg = C_StringUtil.EscapeLuaFormatString(msg)
+      else
         msg = string.gsub(msg, "%%", "%%%%");
       end
 
@@ -1314,20 +1307,20 @@ function addonTable.MessagesMonitorMixin:MessageEventHandler(event, ...)
       if ( usingDifferentLanguage ) then
         local languageHeader = "["..arg3.."] ";
         if showLink or (issecretvalue and issecretvalue(arg2)) or arg2 ~= "" then
-          outMsg = string.format(GetOutMessageFormatKey(type) .. "%s%s", pflag..playerLink, languageHeader, message);
+          outMsg = string.format(GetOutMessageFormatKey(type)..languageHeader..message, pflag..playerLink);
         else
-          outMsg = string.format(GetOutMessageFormatKey(type) .. "%s%s", pflag..arg2, languageHeader, message);
+          outMsg = string.format(GetOutMessageFormatKey(type)..languageHeader..message, pflag..arg2);
         end
       else
         if not showLink or (not issecretvalue or not issecretvalue(arg2)) and arg2 == "" then
           if ( type == "TEXT_EMOTE" ) then
             outMsg = message;
           else
-            outMsg = string.format(GetOutMessageFormatKey(type) .. message, pflag .. arg2, arg2);
+            outMsg = string.format(GetOutMessageFormatKey(type)..message, pflag .. arg2, arg2);
           end
         else
           if ( type == "EMOTE" ) then
-            outMsg = string.format(GetOutMessageFormatKey(type) .. message, pflag .. playerLink);
+            outMsg = string.format(GetOutMessageFormatKey(type)..message, pflag .. playerLink);
           elseif ( type == "TEXT_EMOTE") then
             if not issecretvalue or not issecretvalue(message) and not issecretvalue(arg2) and not issecretvalue(playerLink) then
               outMsg = string.gsub(message, arg2, pflag..playerLink, 1);
@@ -1336,10 +1329,8 @@ function addonTable.MessagesMonitorMixin:MessageEventHandler(event, ...)
             end
           elseif (type == "GUILD_ITEM_LOOTED") then
             outMsg = string.gsub(message, "$s", GetPlayerLink(arg2, playerLinkDisplayText));
-          elseif not issecretvalue or (not issecretvalue(message) and not issecretvalue(playerLink)) then
-            outMsg = string.format(GetOutMessageFormatKey(type) .. message, pflag..playerLink)
           else
-            outMsg = string.format(GetOutMessageFormatKey(type), pflag..playerLink) .. message;
+            outMsg = string.format(GetOutMessageFormatKey(type)..message, pflag..playerLink)
           end
         end
       end
