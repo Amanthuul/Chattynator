@@ -263,7 +263,7 @@ function addonTable.Display.ButtonsBarMixin:OnLeave()
 end
 
 function addonTable.Display.ButtonsBarMixin:UpdateScrollToEndFrame()
-  self.ScrollToEndFrame:SetSize(self:GetParent().ScrollingMessages:GetWidth(), 20)
+  self.ScrollToEndFrame:SetSize(self:GetParent().ScrollingMessages:GetWidth() + 5, 20)
 end
 
 function addonTable.Display.ButtonsBarMixin:Update()
