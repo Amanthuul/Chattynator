@@ -362,6 +362,7 @@ local skinners = {
       if not enableHooks then
         return
       end
+      tab:SetIgnoreParentAlpha(state)
       tab.FlashAnimation:SetPlaying(state)
       tab.LeftFlash:SetShown(state)
       tab.RightFlash:SetShown(state)
